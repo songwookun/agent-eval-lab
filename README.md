@@ -1,8 +1,25 @@
 # agent-eval-lab
 
+![status](https://img.shields.io/badge/status-WIP-yellow)
+![python](https://img.shields.io/badge/python-3.12%2B-blue)
+![license](https://img.shields.io/badge/license-MIT-green)
+![tracing](https://img.shields.io/badge/observability-OpenTelemetry-7B42BC)
+![pkg](https://img.shields.io/badge/packaging-uv-DE5FE9)
+
 Framework-agnostic **AI Agent 평가 · 관측 인프라**.
 어떤 LLM(Gemini / Claude / OpenAI)이든 어댑터로 받아서 동일한 4축으로 평가하고,
 OpenTelemetry GenAI 표준으로 trace 를 남긴다.
+
+```mermaid
+flowchart LR
+    S[Task Suite] --> A[Agent<br/>self-built loop]
+    A -->|OTel span| O[(Langfuse /<br/>OTel backend)]
+    A --> T[Trajectory]
+    T --> E{4축 Evaluator}
+    E --> R[RunResult]
+    R --> DB[(SQLite)]
+    R --> CLI[CLI 표 출력]
+```
 
 ## 왜 만드나
 
