@@ -1,0 +1,29 @@
+[project]
+name = "agent-eval-lab"
+version = "0.1.0"
+description = "Framework-agnostic AI Agent evaluation & observability infra"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "google-genai>=2.8.0",
+    "opentelemetry-sdk>=1.42.1",
+    "python-dotenv>=1.2.2",
+    "typer>=0.26.7",
+]
+
+[project.scripts]
+agent-eval-lab = "agent_eval_lab:main"
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

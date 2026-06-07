@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets — 실제 키. 절대 커밋 금지
+.env
+
+# Local eval DB (SQLite)
+eval.db
+*.sqlite3
+
+# 개인 노트/컨텍스트 — 공개 X (나만 봄)
+docs/
+CLAUDE.md
+
+# Claude Code 로컬 설정 — 개인 환경 (권한 허용 목록 등)
+.claude/
