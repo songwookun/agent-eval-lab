@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-agent-eval-lab = "agent_eval_lab:main"
+agent-eval-lab = "agent_eval_lab.cli.main:main"
 
 [build-system]
 requires = ["uv_build>=0.11.19,<0.12.0"]

@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from agent-eval-lab!")
+"""agent-eval-lab — Framework-agnostic AI Agent 평가/관측 인프라."""
