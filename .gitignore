@@ -16,6 +16,9 @@ wheels/
 eval.db
 *.sqlite3
 
+# Agent 파일쓰기 tool 의 sandbox (런타임 산출물)
+agent_workspace/
+
 # 개인 노트/컨텍스트 — 공개 X (나만 봄)
 docs/
 CLAUDE.md
