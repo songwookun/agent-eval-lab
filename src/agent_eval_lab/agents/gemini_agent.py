@@ -5,16 +5,30 @@ high-level SDK wrapper 없이 LLM 호출 → function call 파싱 → tool dispa
 """
 
 import os
+import sys
 import time
 from datetime import datetime, timezone
 
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 from opentelemetry.trace import Status, StatusCode
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 from agent_eval_lab.core.protocols import Tool
 from agent_eval_lab.core.types import Task, Trajectory, LLMStep, ToolStep
 from agent_eval_lab.tracing.otel_setup import get_tracer
+
+
+def _is_rate_limit(exc: BaseException) -> bool:
+    """429(RESOURCE_EXHAUSTED) 만 재시도 대상. 다른 에러는 즉시 전파."""
+    return isinstance(exc, errors.APIError) and (
+        getattr(exc, "code", None) == 429 or getattr(exc, "status", None) == "RESOURCE_EXHAUSTED"
+    )
+
+
+def _log_retry(state) -> None:
+    """재시도 진입 시 사용자에게 알림(콘솔 표를 안 깨도록 stderr)."""
+    print(f"  ⏳ rate limit — {state.attempt_number}회차 재시도 대기 중...", file=sys.stderr)
 
 _PRICE_IN = 0.30 / 1_000_000   # gemini-2.5-flash 입력 단가 (근사, W3 cost evaluator 정밀화)
 _PRICE_OUT = 2.50 / 1_000_000  # 출력 단가
@@ -72,6 +86,19 @@ class GeminiAgent:
         ]
         return [types.Tool(function_declarations=declarations)]
 
+    @retry(
+        retry=retry_if_exception(_is_rate_limit),
+        wait=wait_exponential(multiplier=2, min=20, max=80),  # 무료 tier 분단위 리셋 커버
+        stop=stop_after_attempt(5),
+        before_sleep=_log_retry,
+        reraise=True,  # 끝까지 429면 원래 예외를 그대로 → trajectory.error 로 잡힘
+    )
+    async def _generate(self, contents, config) -> types.GenerateContentResponse:
+        """generate_content 호출만 분리 — 429 재시도를 span/latency 로직과 격리."""
+        return await self._client.aio.models.generate_content(
+            model=self.model, contents=contents, config=config
+        )
+
     async def _call_llm(self, contents, genai_tools) -> tuple[types.GenerateContentResponse, LLMStep]:
         """LLM 1회 호출 + LLMStep/span 생성. AFC 끄고 우리가 loop 제어."""
         started = datetime.now(timezone.utc)
@@ -83,9 +110,7 @@ class GeminiAgent:
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
         with self._tracer.start_as_current_span("llm.generate") as span:
-            response = await self._client.aio.models.generate_content(
-                model=self.model, contents=contents, config=config
-            )
+            response = await self._generate(contents, config)
             latency_ms = int((time.perf_counter() - t0) * 1000)
             usage = response.usage_metadata
             tokens_in = usage.prompt_token_count or 0

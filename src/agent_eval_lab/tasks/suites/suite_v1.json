@@ -1,0 +1,102 @@
+{
+  "version": "suite_v1.0",
+  "description": "W2 기본 suite — calc/get_weather/write_file 3 tool 커버. checks(결정적) + rubric(judge) 혼합.",
+  "tasks": [
+    {
+      "id": "calc_01",
+      "prompt": "23 곱하기 19 는 얼마야? 숫자만 답해줘.",
+      "expected_tools": ["calc"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "437"}]
+      }
+    },
+    {
+      "id": "calc_02",
+      "prompt": "(120 + 80) 를 4 로 나눈 값을 알려줘.",
+      "expected_tools": ["calc"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "50"}]
+      }
+    },
+    {
+      "id": "calc_03",
+      "prompt": "2 의 10 제곱은 얼마인지 계산해줘.",
+      "expected_tools": ["calc"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "1024"}]
+      }
+    },
+    {
+      "id": "weather_01",
+      "prompt": "도쿄의 현재 기온이 몇 도인지 알려줘.",
+      "expected_tools": ["get_weather"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "22"}]
+      }
+    },
+    {
+      "id": "weather_02",
+      "prompt": "서울 지금 기온 알려줘.",
+      "expected_tools": ["get_weather"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "18"}]
+      }
+    },
+    {
+      "id": "combo_01",
+      "prompt": "도쿄의 섭씨 온도에 100 을 곱한 값을 계산해줘.",
+      "expected_tools": ["get_weather", "calc"],
+      "expected_min_steps": 2,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "2200"}]
+      }
+    },
+    {
+      "id": "combo_02",
+      "prompt": "서울의 기온과 뉴욕의 기온을 더하면 몇 도야?",
+      "expected_tools": ["get_weather", "calc"],
+      "expected_min_steps": 3,
+      "ground_truth": {
+        "checks": [{"type": "final_contains", "value": "33"}]
+      }
+    },
+    {
+      "id": "file_01",
+      "prompt": "notes/hello.txt 파일에 '안녕하세요' 라고 정확히 써줘.",
+      "expected_tools": ["write_file"],
+      "expected_min_steps": 1,
+      "ground_truth": {
+        "checks": [
+          {"type": "file_exists", "path": "notes/hello.txt"},
+          {"type": "file_contains", "path": "notes/hello.txt", "value": "안녕하세요"}
+        ]
+      }
+    },
+    {
+      "id": "file_02",
+      "prompt": "도쿄 날씨를 조회한 뒤, 그 기온(숫자)을 weather/tokyo.txt 파일에 기록해줘.",
+      "expected_tools": ["get_weather", "write_file"],
+      "expected_min_steps": 2,
+      "ground_truth": {
+        "checks": [
+          {"type": "file_exists", "path": "weather/tokyo.txt"},
+          {"type": "file_contains", "path": "weather/tokyo.txt", "value": "22"}
+        ]
+      }
+    },
+    {
+      "id": "judge_01",
+      "prompt": "AI 에이전트를 평가하는 일이 왜 중요한지 한 문장으로 설명해줘.",
+      "expected_tools": [],
+      "expected_min_steps": 0,
+      "ground_truth": {
+        "rubric": "AI 에이전트 평가의 중요성을 한 문장으로 타당하게 설명했는가. 신뢰성/안전성/품질측정/회귀탐지 등 합리적 근거가 하나라도 있으면 높은 점수."
+      }
+    }
+  ]
+}
