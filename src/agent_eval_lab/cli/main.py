@@ -14,6 +14,7 @@ from agent_eval_lab.agents.gemini_agent import GeminiAgent
 from agent_eval_lab.core.types import StepType, Task, Trajectory
 from agent_eval_lab.evaluators.task_success import TaskSuccessEvaluator
 from agent_eval_lab.evaluators.tool_call import ToolCallEvaluator
+from agent_eval_lab.evaluators.trajectory import TrajectoryEvaluator
 from agent_eval_lab.runner.orchestrator import Runner
 from agent_eval_lab.storage.repository import get_run, init_db, list_runs, save_run
 from agent_eval_lab.tasks.loader import load_suite
@@ -75,7 +76,7 @@ def run(
     version, tasks = load_suite(suite)
     runner = Runner(
         agent=GeminiAgent(),
-        evaluators=[TaskSuccessEvaluator(), ToolCallEvaluator()],
+        evaluators=[TaskSuccessEvaluator(), ToolCallEvaluator(), TrajectoryEvaluator()],
         tools=default_registry().all_tools(),
         suite=tasks,
         suite_id=suite,
