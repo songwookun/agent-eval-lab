@@ -59,7 +59,7 @@
     {
       "id": "combo_02",
       "prompt": "서울의 기온과 뉴욕의 기온을 더하면 몇 도야?",
-      "expected_tools": ["get_weather", "calc"],
+      "expected_tools": ["get_weather", "get_weather", "calc"],
       "expected_min_steps": 3,
       "ground_truth": {
         "checks": [{"type": "final_contains", "value": "33"}]
