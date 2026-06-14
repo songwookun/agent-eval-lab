@@ -15,6 +15,7 @@ from agent_eval_lab.core.types import StepType, Task, Trajectory
 from agent_eval_lab.evaluators.task_success import TaskSuccessEvaluator
 from agent_eval_lab.evaluators.tool_call import ToolCallEvaluator
 from agent_eval_lab.evaluators.trajectory import TrajectoryEvaluator
+from agent_eval_lab.evaluators.cost import CostEvaluator
 from agent_eval_lab.runner.orchestrator import Runner
 from agent_eval_lab.storage.repository import get_run, init_db, list_runs, save_run
 from agent_eval_lab.tasks.loader import load_suite
@@ -57,8 +58,20 @@ def _print_payload(p: dict) -> None:
     n = len(scores)
     passed = sum(1 for s in scores if s["passed"])
     avg = sum(s["score"] for s in scores) / n if n else 0.0
+
+    # 축(metric)별 분리 집계 — 4축이 섞인 전체 평균만으론 어느 축이 약한지 안 보임
     typer.echo("-" * 64)
-    typer.echo(f"평균 {avg:.2f} | 통과 {passed}/{n}")
+    typer.echo("[축별 요약]")
+    by_metric: dict[str, list[dict]] = {}
+    for s in scores:  # 첫 등장 순서 보존(dict 삽입순)
+        by_metric.setdefault(s["metric"], []).append(s)
+    for metric, rows in by_metric.items():
+        m_avg = sum(r["score"] for r in rows) / len(rows)
+        m_pass = sum(1 for r in rows if r["passed"])
+        typer.echo(f"  {metric:<20}avg {m_avg:.2f}  {m_pass:>2}/{len(rows)}")
+
+    typer.echo("-" * 64)
+    typer.echo(f"전체 평균 {avg:.2f} | 통과 {passed}/{n}")
     for s in scores:  # 실패한 것만 사유 노출
         if not s["passed"]:
             typer.echo(f"  ✗ {s['task_id']}: {s['reason']}")
@@ -76,7 +89,10 @@ def run(
     version, tasks = load_suite(suite)
     runner = Runner(
         agent=GeminiAgent(),
-        evaluators=[TaskSuccessEvaluator(), ToolCallEvaluator(), TrajectoryEvaluator()],
+        evaluators=[
+            TaskSuccessEvaluator(), ToolCallEvaluator(),
+            TrajectoryEvaluator(), CostEvaluator(),
+        ],
         tools=default_registry().all_tools(),
         suite=tasks,
         suite_id=suite,

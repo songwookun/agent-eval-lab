@@ -73,6 +73,7 @@ class GeminiAgent:
         self.system_prompt = system_prompt
         self._client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
         self._tracer = get_tracer("agent_eval_lab.agent")
+        self._last_call_ms = 0  # 직전 성공한 generate_content 순수 시간(backoff 제외, cost 축용)
 
     def _build_genai_tools(self, tools: list[Tool]) -> list[types.Tool]:
         """우리 Tool → genai FunctionDeclaration. input_schema(JSON Schema) 그대로 투입."""
@@ -94,15 +95,21 @@ class GeminiAgent:
         reraise=True,  # 끝까지 429면 원래 예외를 그대로 → trajectory.error 로 잡힘
     )
     async def _generate(self, contents, config) -> types.GenerateContentResponse:
-        """generate_content 호출만 분리 — 429 재시도를 span/latency 로직과 격리."""
-        return await self._client.aio.models.generate_content(
+        """generate_content 호출만 분리 — 429 재시도를 span/latency 로직과 격리.
+
+        성공한 호출의 순수 시간만 self._last_call_ms 에 남긴다(재시도 backoff sleep은
+        이 함수 *밖*에서 tenacity 가 처리하므로 자동 제외 → cost 축 latency 오염 방지).
+        """
+        t = time.perf_counter()
+        resp = await self._client.aio.models.generate_content(
             model=self.model, contents=contents, config=config
         )
+        self._last_call_ms = int((time.perf_counter() - t) * 1000)
+        return resp
 
     async def _call_llm(self, contents, genai_tools) -> tuple[types.GenerateContentResponse, LLMStep]:
         """LLM 1회 호출 + LLMStep/span 생성. AFC 끄고 우리가 loop 제어."""
         started = datetime.now(timezone.utc)
-        t0 = time.perf_counter()
         config = types.GenerateContentConfig(
             system_instruction=self.system_prompt,
             temperature=self.temperature,
@@ -111,7 +118,7 @@ class GeminiAgent:
         )
         with self._tracer.start_as_current_span("llm.generate") as span:
             response = await self._generate(contents, config)
-            latency_ms = int((time.perf_counter() - t0) * 1000)
+            latency_ms = self._last_call_ms  # 순수 LLM 시간(backoff 제외) — _generate 가 측정
             usage = response.usage_metadata
             tokens_in = usage.prompt_token_count or 0
             tokens_out = usage.candidates_token_count or 0
