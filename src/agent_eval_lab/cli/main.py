@@ -11,6 +11,7 @@ import typer
 from dotenv import load_dotenv
 
 from agent_eval_lab.agents.gemini_agent import GeminiAgent
+from agent_eval_lab.agents.groq_agent import GroqAgent
 from agent_eval_lab.core.types import StepType, Task, Trajectory
 from agent_eval_lab.evaluators.task_success import TaskSuccessEvaluator
 from agent_eval_lab.evaluators.tool_call import ToolCallEvaluator
@@ -38,6 +39,14 @@ def _git_sha() -> str | None:
         ).strip()
     except Exception:
         return None
+
+
+def _build_agent(name: str):
+    """--agent 이름 → Agent 구현체. 같은 suite 를 여러 LLM 으로 교차 평가하는 진입점."""
+    agents = {"gemini": GeminiAgent, "groq": GroqAgent}
+    if name not in agents:
+        raise typer.BadParameter(f"지원 agent: {list(agents)} (받음: {name!r})")
+    return agents[name]()
 
 
 def _print_payload(p: dict) -> None:
@@ -81,6 +90,7 @@ def _print_payload(p: dict) -> None:
 def run(
     suite: str = typer.Option("suite_v1", help="suite 이름 또는 .json 경로"),
     out: str = typer.Option("eval.db", help="결과 저장 SQLite 경로"),
+    agent: str = typer.Option("gemini", help="평가할 agent: gemini | groq"),
     console: bool = typer.Option(False, help="OTel span 을 콘솔에 출력"),
 ):
     """suite 전체를 평가 실행 → 점수 표 출력 + SQLite 저장."""
@@ -88,7 +98,7 @@ def run(
     setup_tracing(console=console)
     version, tasks = load_suite(suite)
     runner = Runner(
-        agent=GeminiAgent(),
+        agent=_build_agent(agent),
         evaluators=[
             TaskSuccessEvaluator(), ToolCallEvaluator(),
             TrajectoryEvaluator(), CostEvaluator(),
@@ -162,14 +172,15 @@ def _print_trajectory(tr: Trajectory) -> None:
 @app.command(name="run-once")
 def run_once(
     prompt: str = typer.Option("도쿄의 섭씨 온도에 100을 곱한 값을 계산해줘", help="agent 에게 줄 지시"),
+    agent: str = typer.Option("gemini", help="실행할 agent: gemini | groq"),
     console: bool = typer.Option(True, help="OTel span 을 콘솔에 출력"),
 ):
     """agent 를 단일 prompt 로 실행하고 trajectory 를 출력(W1 디버깅용)."""
     load_dotenv()
     setup_tracing(console=console)
-    agent = GeminiAgent()
+    agent_impl = _build_agent(agent)
     task = Task(id="cli_adhoc", prompt=prompt, expected_tools=[], expected_min_steps=1, ground_truth={})
-    tr = asyncio.run(agent.run(task, default_registry().all_tools()))
+    tr = asyncio.run(agent_impl.run(task, default_registry().all_tools()))
     _print_trajectory(tr)
 
 
