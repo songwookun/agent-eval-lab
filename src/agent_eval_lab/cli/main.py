@@ -184,5 +184,20 @@ def run_once(
     _print_trajectory(tr)
 
 
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", help="바인드 호스트"),
+    port: int = typer.Option(8000, help="포트"),
+    out: str = typer.Option("eval.db", help="조회할 SQLite 경로"),
+):
+    """FastAPI 조회 API 서버 기동 (Swagger UI: /docs)."""
+    import os
+    import uvicorn
+
+    os.environ["EVAL_DB"] = out  # api.main._db() 가 이 env 를 읽음
+    typer.echo(f"API: http://{host}:{port}  |  문서: http://{host}:{port}/docs")
+    uvicorn.run("agent_eval_lab.api.main:app", host=host, port=port)
+
+
 def main() -> None:
     app()
