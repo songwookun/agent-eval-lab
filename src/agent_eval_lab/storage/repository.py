@@ -75,3 +75,42 @@ def list_runs(limit: int = 20, db_path: str = DEFAULT_DB) -> list[dict]:
             (limit,),
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+def compare_by_suite(suite_id: str, db_path: str = DEFAULT_DB) -> list[dict]:
+    """suite 내 agent별 '최신 run'의 metric(축)별 평균. 모델 교차비교 뷰용.
+
+    각 agent 마다 최신 run 1개만 골라(옛 1축 run 등 자동 배제) 그 run 의 축별 평균을
+    낸다. → "같은 suite 를 여러 LLM 으로 돌린 최신 결과를 4축으로 나란히" 비교.
+    """
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        # 1) suite 내 agent 별 최신 run (상관 서브쿼리로 max started_at)
+        latest = conn.execute(
+            "SELECT r.run_id, r.agent_id, r.model, r.started_at FROM runs r "
+            "WHERE r.suite_id = ? AND r.started_at = ("
+            "  SELECT MAX(r2.started_at) FROM runs r2 "
+            "  WHERE r2.suite_id = r.suite_id AND r2.agent_id = r.agent_id"
+            ") ORDER BY r.agent_id",
+            (suite_id, ),
+        ).fetchall()
+
+        out = []
+        for run in latest:
+            # 2) 그 run 의 metric 별 평균/통과 집계
+            axes_rows = conn.execute(
+                "SELECT metric, AVG(score) AS avg, SUM(passed) AS n_passed, "
+                "       COUNT(*) AS n FROM scores WHERE run_id = ? GROUP BY metric",
+                (run["run_id"], ),
+            ).fetchall()
+            axes = {r["metric"]: round(r["avg"], 4) for r in axes_rows}
+            out.append({
+                "agent_id": run["agent_id"],
+                "model": run["model"],
+                "run_id": run["run_id"],
+                "started_at": run["started_at"],
+                "axes": axes,
+                "n_scores": sum(r["n"] for r in axes_rows),
+                "n_passed": sum(r["n_passed"] for r in axes_rows),
+            })
+    return out

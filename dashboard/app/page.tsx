@@ -24,8 +24,18 @@ export default async function Home() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10">
-      <h1 className="text-2xl font-bold">agent-eval-lab</h1>
-      <p className="mt-1 text-sm text-zinc-400">평가 run 목록 — 4축 점수 · 모델 교차비교</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">agent-eval-lab</h1>
+          <p className="mt-1 text-sm text-zinc-400">평가 run 목록 — 4축 점수 · 모델 교차비교</p>
+        </div>
+        <Link
+          href="/compare"
+          className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300 hover:bg-emerald-500/20"
+        >
+          모델 비교 →
+        </Link>
+      </div>
 
       {error && (
         <div className="mt-6 rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-300">

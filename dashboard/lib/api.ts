@@ -40,5 +40,17 @@ async function getJSON<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type CompareRow = {
+  agent_id: string | null;
+  model: string | null;
+  run_id: string;
+  started_at: string;
+  axes: Record<string, number>; // {metric: 평균}
+  n_scores: number;
+  n_passed: number;
+};
+
 export const listRuns = (limit = 20) => getJSON<RunSummary[]>(`/runs?limit=${limit}`);
 export const getRun = (runId: string) => getJSON<RunDetail>(`/runs/${runId}`);
+export const compareBySuite = (suiteId = "suite_v1") =>
+  getJSON<CompareRow[]>(`/compare?suite_id=${suiteId}`);

@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from agent_eval_lab.storage.repository import get_run, list_runs
+from agent_eval_lab.storage.repository import compare_by_suite, get_run, list_runs
 
 
 # ─── 응답 스키마 (FastAPI 가 검증 + OpenAPI 문서 자동 생성) ───
@@ -46,6 +46,17 @@ class RunDetail(BaseModel):
     scores: list[ScoreOut]
     started_at: str
     ended_at: str | None = None
+
+
+class CompareRow(BaseModel):
+    """GET /compare 1행 — suite 내 한 agent 의 최신 run 4축 평균."""
+    agent_id: str | None = None
+    model: str | None = None
+    run_id: str
+    started_at: str
+    axes: dict[str, float]  # {metric: 평균}
+    n_scores: int
+    n_passed: int
 
 
 def _db() -> str:
@@ -90,3 +101,9 @@ def get_run_detail(run_id: str) -> dict:
     if payload is None:
         raise HTTPException(status_code=404, detail=f"run 없음: {run_id}")
     return payload
+
+
+@app.get("/compare", response_model=list[CompareRow])
+def compare(suite_id: str = Query("suite_v1", description="비교할 suite")) -> list[dict]:
+    """suite 내 agent별 최신 run 의 4축 평균 — 모델 교차비교."""
+    return compare_by_suite(suite_id, _db())
