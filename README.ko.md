@@ -24,6 +24,16 @@ flowchart LR
     DB --> CLI[CLI 점수표]
 ```
 
+## 스크린샷
+
+**Run 목록** — 4축 평균이 붙은 평가 run 목록 (Gemini vs Groq)
+
+![run 목록](assets/dashboard-list.png)
+
+**모델 비교** (`/compare`) — 축별 바로 trade-off 가시화: `tool_call` 은 Groq 100% > Gemini 90%, `task_success` 는 반대
+
+![모델 비교](assets/dashboard-compare.png)
+
 ## 왜 만드나
 
 LLM Agent 는 같은 프롬프트에도 **매번 다르게 행동**한다 — 어떤 tool 을 부를지, 몇 번 만에 풀지, 비용이 얼마일지가 실행마다 달라진다.

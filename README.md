@@ -24,6 +24,16 @@ flowchart LR
     DB --> CLI[CLI score table]
 ```
 
+## Screenshots
+
+**Run list** — evaluation runs with 4-axis averages (Gemini vs Groq)
+
+![run list](assets/dashboard-list.png)
+
+**Model comparison** (`/compare`) — per-axis bars reveal the trade-off: `tool_call` Groq 100% > Gemini 90%, while `task_success` is the opposite
+
+![model comparison](assets/dashboard-compare.png)
+
 ## Why
 
 LLM agents **behave differently on every run** of the same prompt — which tools they call, how many
