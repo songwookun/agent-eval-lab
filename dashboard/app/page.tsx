@@ -43,40 +43,44 @@ export default async function Home() {
       )}
 
       {runs.length > 0 && (
-        <table className="mt-6 w-full text-sm">
-          <thead className="text-left text-zinc-400">
-            <tr className="border-b border-zinc-700">
-              <th className="py-2">RUN</th>
-              <th>AGENT</th>
-              <th>SUITE</th>
-              <th className="text-right">평균</th>
-              <th className="text-right">통과</th>
-              <th className="text-right">시각</th>
-            </tr>
-          </thead>
-          <tbody>
-            {runs.map((r) => (
-              <tr key={r.run_id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
-                <td className="py-2">
-                  <Link href={`/runs/${r.run_id}`} className="font-mono text-emerald-400 hover:underline">
-                    {r.run_id.slice(0, 12)}
-                  </Link>
-                </td>
-                <td>
-                  <AgentBadge id={r.agent_id} />
-                </td>
-                <td className="text-zinc-300">{r.suite_id}</td>
-                <td className="text-right font-medium">{pct(r.avg_score)}</td>
-                <td className="text-right text-zinc-300">
-                  {r.n_passed ?? 0}/{r.n_scores}
-                </td>
-                <td className="text-right text-zinc-500">
-                  {r.started_at.slice(0, 19).replace("T", " ")}
-                </td>
+        <div className="mt-6 overflow-x-auto rounded-lg border border-zinc-800">
+          <table className="w-full border-collapse text-[15px]">
+            <thead className="bg-zinc-900/60 text-left text-xs uppercase tracking-wider text-zinc-500">
+              <tr className="border-b border-zinc-700">
+                <th className="px-6 py-5 font-medium">RUN</th>
+                <th className="px-6 py-5 font-medium">AGENT</th>
+                <th className="px-6 py-5 font-medium">SUITE</th>
+                <th className="px-6 py-5 text-right font-medium">평균</th>
+                <th className="px-6 py-5 text-right font-medium">통과</th>
+                <th className="px-6 py-5 text-right font-medium">시각</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {runs.map((r) => (
+                <tr key={r.run_id} className="border-b border-zinc-800 last:border-0 hover:bg-zinc-800/50">
+                  <td className="whitespace-nowrap px-6 py-5">
+                    <Link href={`/runs/${r.run_id}`} className="font-mono text-emerald-400 hover:underline">
+                      {r.run_id.slice(0, 12)}
+                    </Link>
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-5">
+                    <AgentBadge id={r.agent_id} />
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-5 text-zinc-300">{r.suite_id}</td>
+                  <td className="whitespace-nowrap px-6 py-5 text-right font-medium tabular-nums">
+                    {pct(r.avg_score)}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-5 text-right text-zinc-300 tabular-nums">
+                    {r.n_passed ?? 0}/{r.n_scores}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-5 text-right text-zinc-500 tabular-nums">
+                    {r.started_at.slice(0, 19).replace("T", " ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </main>
   );

@@ -70,18 +70,20 @@ export default async function RunPage({ params }: { params: Promise<{ runId: str
       {metrics.map((m) => (
         <section key={m} className="mt-8">
           <h2 className="text-sm font-semibold text-zinc-300">{m}</h2>
-          <table className="mt-2 w-full text-sm">
-            <tbody>
-              {byMetric[m].map((s) => (
-                <tr key={`${m}-${s.task_id}`} className="border-b border-zinc-800">
-                  <td className="py-1.5 font-mono text-zinc-400">{s.task_id}</td>
-                  <td className="w-16 text-right font-medium">{s.score.toFixed(2)}</td>
-                  <td className="w-10 text-center">{s.passed ? "✅" : "❌"}</td>
-                  <td className="text-zinc-500">{s.reason}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mt-2 overflow-x-auto rounded-lg border border-zinc-800">
+            <table className="w-full border-collapse text-[15px]">
+              <tbody>
+                {byMetric[m].map((s) => (
+                  <tr key={`${m}-${s.task_id}`} className="border-b border-zinc-800 last:border-0">
+                    <td className="whitespace-nowrap px-6 py-3.5 font-mono text-zinc-400">{s.task_id}</td>
+                    <td className="w-16 px-6 py-3.5 text-right font-medium tabular-nums">{s.score.toFixed(2)}</td>
+                    <td className="w-10 px-3 py-3.5 text-center">{s.passed ? "✅" : "❌"}</td>
+                    <td className="px-6 py-3.5 text-zinc-500">{s.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
       ))}
     </main>
