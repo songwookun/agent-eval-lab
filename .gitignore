@@ -25,3 +25,9 @@ CLAUDE.md
 
 # Claude Code 로컬 설정 — 개인 환경 (권한 허용 목록 등)
 .claude/
+
+# Next.js dashboard 빌드 산출물 (소스는 커밋, 의존성/빌드는 제외)
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/.env*.local

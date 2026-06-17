@@ -62,7 +62,10 @@ app = FastAPI(
 # Next.js dashboard(다른 포트)가 호출할 수 있게 CORS 허용(로컬 개발용).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3001", "http://127.0.0.1:3001",  # Next.js dashboard(3000은 Langfuse)
+        "http://localhost:3000", "http://127.0.0.1:3000",
+    ],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
