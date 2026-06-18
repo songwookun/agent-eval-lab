@@ -32,3 +32,6 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "llm: 실제 LLM API 키가 필요한 테스트 (CI 에선 -m 'not llm' 으로 skip)",
+]

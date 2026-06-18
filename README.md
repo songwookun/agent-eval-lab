@@ -2,6 +2,7 @@
 
 **English** | [한국어](README.ko.md)
 
+[![tests](https://github.com/songwookun/agent-eval-lab/actions/workflows/test.yml/badge.svg)](https://github.com/songwookun/agent-eval-lab/actions/workflows/test.yml)
 ![status](https://img.shields.io/badge/status-MVP-brightgreen)
 ![python](https://img.shields.io/badge/python-3.13%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-green)

@@ -1,0 +1,25 @@
+name: tests
+
+# push / PR 마다 깨끗한 머신에서 결정적 테스트 실행 — "내 맥북에서만 됨" 방지
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+
+      - name: Sync deps
+        run: uv sync --frozen
+
+      # LLM 키 없는 머신 → 결정적 테스트만(quota 0). LLM 테스트는 @pytest.mark.llm 로 격리.
+      - name: Run deterministic tests
+        run: uv run pytest -m "not llm" -v
